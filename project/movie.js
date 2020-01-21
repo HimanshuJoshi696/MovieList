@@ -1,41 +1,72 @@
-console.log("file attached");
-
-//constructor function for add tde book details object
-
-function booksData(movieName, year, type) {
-  this.movieName = movieName;
+function CreationMovieList(name, year, type) {
+  this.name = name;
   this.year = year;
   this.type = type;
 }
+showMoviesList();
+//function prototype create function
+function allActionProtos(movieListData) {}
 
-//display Your Data
+allActionProtos.prototype.add = function(movieListData) {
+  let getMovieObjFromStorage = JSON.parse(localStorage.getItem("movieList"));
+  if (getMovieObjFromStorage == null) {
+    newMovieArr = [];
+  } else {
+    newMovieArr = getMovieObjFromStorage;
+  }
+  newMovieArr.push(movieListData);
+  localStorage.setItem("movieList", JSON.stringify(newMovieArr));
+  showMoviesList();
+};
 
-function displayDataUI() {}
-
-// help of prototype
-
-displayDataUI.prototype.add = function(movieData) {
-  console.log("adding movie data", movieData);
+function showMoviesList() {
+  let getMovieObjFromStorage = JSON.parse(localStorage.getItem("movieList"));
   let tableBody = document.getElementById("tableBody");
-  let uiQuotes = `
-    <tr>
-              <td scope="col">${movieData.movieName}</td>
-              <td scope="col">${movieData.year}</td>
-              <td scope="col">${movieData.type}</td>
-            </tr>
-    `;
-  tableBody.innerHTML += uiQuotes;
+  if (getMovieObjFromStorage == null) {
+    newMovieArr = [];
+  } else {
+    newMovieArr = getMovieObjFromStorage;
+  }
+  let createRows = "";
+  newMovieArr.map((data, index) => {
+    createRows += ` <tr>
+    <td scope="col">${data.name}</td>
+    <td scope="col">${data.year}</td>
+    <td scope="col">${data.type}</td>
+    <td scope="col"><button id="${index}"onclick="deleteMovie(this.id)" class="btn btn-primary">Delete Note</button></td>
+
+  </tr>
+  `;
+  });
+  if (newMovieArr.length != 0) {
+    tableBody.innerHTML = createRows;
+  } else {
+    tableBody.innerHTML = "There is no movies yet !!";
+  }
+}
+//delete movie list
+function deleteMovie(id) {
+  let getMovieObjFromStorage = JSON.parse(localStorage.getItem("movieList"));
+  if (getMovieObjFromStorage == null) {
+    newMovieArr = [];
+  } else {
+    newMovieArr = getMovieObjFromStorage;
+  }
+  console.log(newMovieArr)
+  newMovieArr.splice(id, 1);
+  localStorage.setItem("movieList", JSON.stringify(newMovieArr));
+  showMoviesList();
+}
+//reset form after added movie into localstorage
+allActionProtos.prototype.reset = function() {
+  document.querySelector("#movieForm").reset();
 };
 
-displayDataUI.prototype.clear = function() {
-  let movieForm = document.getElementById("movieForm");
-  movieForm.reset();
-};
-
-displayDataUI.prototype.showMessage = function(type, displayMessage) {
-  let message = document.getElementById("message");
+//show success and error message when click on the submit form
+allActionProtos.prototype.displayShowMessage = function(type, showMessage) {
+  let message = document.querySelector("#message");
   message.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
-    <strong>Messge:</strong> ${displayMessage}
+    <strong>Messge:</strong> ${showMessage}
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
     <span aria-hidden="true">×</span>
     </button>
@@ -45,25 +76,33 @@ displayDataUI.prototype.showMessage = function(type, displayMessage) {
   }, 2000);
 };
 
-// add listener
+//Creating addEvent listener Form button action
+document.getElementById("movieForm").addEventListener("submit", submitForm);
 
-let movieForm = document.getElementById("movieForm");
-movieForm.addEventListener("submit", addBooksDetails);
+//Form button action function
+function submitForm(e) {
+  let movieName = document.querySelector("#moviename").value;
+  let movieYear = document.querySelector("#year").value;
+  let movieType = document.querySelector(".form-check-input:checked").value;
+  let createMovieListObj = new CreationMovieList(
+    movieName,
+    movieYear,
+    movieType
+  );
 
-function addBooksDetails(e) {
-  let movieName = document.getElementById("moviename").value;
-  let year = document.getElementById("year").value;
-  let type = document.querySelector(".form-check-input:checked").value;
-  let movieObj = new booksData(movieName, year, type);
-
-  let display = new displayDataUI();
-  if (movieName.length === 0 || year.length === 0) {
-    display.showMessage("danger", " Sorry you cannot add this movie");
+  let movieActionsProto = new allActionProtos();
+  if (movieName != "" && movieYear != "" && movieType != "") {
+    movieActionsProto.add(createMovieListObj);
+    movieActionsProto.reset();
+    movieActionsProto.displayShowMessage(
+      "success",
+      "Your movie has been successfully added"
+    );
   } else {
-    display.add(movieObj);
-    display.clear();
-    display.showMessage("success", "Your movie has been successfully added");
+    movieActionsProto.displayShowMessage(
+      "danger",
+      "Sorry you cannot add this movie"
+    );
   }
-
   e.preventDefault();
 }
